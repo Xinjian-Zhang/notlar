@@ -1,13 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Notlar</title>
+    <title>Notlar</title>
+    <style>
+        .collapsible {
+            background-color: #e87a7a;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+        }
+
+        .content {
+            display: none;
+            overflow: hidden;
+            background-color: #f1f1f1;
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
-	<h1>Notlar</h1>
+    <h1>Notlar</h1>
     <p style="color: gray; font-size: larger;">by Xinjian</p>
-	<hr>
+    <hr>
     <p><b>Notlar Listesi</b></p>
-	<a href="/test1">test1</a>
+	<br>
+
+	<a href="/todo" style="font-size: larger; background-color:cornflowerblue; color: white;">Todo List</a>
+	<hr>
+	<a href="/event">Agile Event Mgmt, Search</a>
+	<br>
+	<a href="/ap">Advanced Programming Defence</a>
+    <a href="/ap7">AP CW7</a>
+    <br><br>
+	<button class="collapsible" onclick="toggleContent('tr')">tr</button>
+    <div class="content" id="trContent">
+        <a href="/tr">(..root)</a>
+        <br>
+        <a href="/tr/1">土耳其语新手快速上口</a>
+    </div>
+
+    <script>
+        function toggleContent(id) {
+            var content = document.getElementById(id + 'Content');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+            } else {
+                content.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>
