@@ -2,7 +2,7 @@
 
 ----
 
-### Coursework 4
+### Coursework 4 JSON data interchange syntax
 
 NB!
 
@@ -243,6 +243,9 @@ let delete ps e =
 
 #### Task 7
 
+> 1 Test Case failed
+> select empty path
+
 Define the function `withPath : Path list -> Ecma -> Ecma list` so that `withPath ps e` evaluates to a list of object representations consisting of those objects in `e` that are represented by a path from the list `ps`.
 
 The result list must respect the ordering requirements from Task 4.
@@ -276,7 +279,7 @@ let withPath (ps : Path list) (e : Ecma) : Ecma list =
 
 ----
 
-### Coursework 5
+### Coursework 5 Performing queries on FSharpON data structures
 
 For introduction to FSharpON please check coursework4.fsx for references.
 
@@ -588,4 +591,349 @@ let rec select s e =
 > OneOrMore and a large tree
 > update spec II
 > update spec
+
+// 4. Define the function
+//
+// update :  (string -> string)
+//        -> (float  -> float)
+//        -> Selector
+//        -> Ecma
+//        -> Ecma
+//
+// such that
+//
+//    update su nu s e
+//
+// evaluates to an Ecma that is otherwise the same as e except that,
+// for the values selected by s, the string values and numeric values
+// of that value have been updated according to the functions su and nu.
+let rec update su nu s e =
+
+Define the fuction
+
+```fsharp
+update : (string -> string)
+       -> (float  -> float)
+       -> Selector
+       -> Ecma
+       -> Ecma
+```
+such that
+
+```
+update su nu s e
+```
+
+```fsharp
+    let rec doUpdate su nu selected e path =
+        match e with
+        | Object obj ->
+            obj
+            |> List.map (fun (k, v) ->
+                if List.exists (fun (p, _) -> p = Key k :: path) selected then
+                    (k, updateVal su nu v)
+                else
+                    (k, doUpdate su nu selected v (Key k :: path))
+            )
+            |> Object
+        | Array ele ->
+            ele
+            |> List.mapi (fun i v ->
+                if List.exists (fun (path, _) -> path = Index i :: path) selected then
+                    updateVal su nu v
+                else
+                    doUpdate su nu selected v (Index i :: path)
+            )
+            |> Array
+        | _ -> updateVal su nu e
+
+    let selected = select s e
+    let uniqueSelected = selected |> List.distinctBy fst
+    doUpdate su nu uniqueSelected e []
+```
+
+----
+
+#### Task 5
+
+
+> 3 Test Cases failed
+> delete simple sequence II
+> delete simple sequence
+> delete spec
+
+`delete : Selector -> Ecma -> Ecma option`
+
+which removes from the given Ecma all values that are selected by the given Selector. Removing a value means removing the entire subtree rooted at that value.
+
+```fsharp
+let rec delete selector e = None
+```
+
+----
+
+#### Task 6
+
+> 2 Test Cases failed
+> truncate spec
+> toZero spec
+
+// 6. Using the function update, define the functions
+//
+//   toZero : float -> Selector -> Ecma -> Ecma
+//
+// and
+//
+//   truncate : int -> Selector -> Ecma -> Ecma
+//
+// so that
+//
+//   toZero x s e
+//
+// evaluates to an Ecma that is otherwise the same as e except that the
+// values selected by s have each of their numeric values y replaced by 0
+// if y is in the range [-x, x].
+//
+//   truncate n s e
+//
+// evaluates to an Ecma that is otherwise the same as e except that the
+// values selected by s have each of their string values y truncated to
+// length n.
+//
+// These functions should not be defined recursively; define them in
+// terms of update.
+
+Using the function update, define the functions
+
+`totoZero : float -> Selector -> Ecma -> Ecma`
+
+and
+
+`truncate : int -> Selector -> Ecma -> Ecma`
+
+so that
+
+`toZero x s e`
+
+evaluates to an Ecma that is otherwise the same as e except that the values selected by s have each of their numeric values y replaced by 0 if y is in the range [-x, x].
+
+`truncate n s e`
+
+evaluates to an Ecma that is otherwise the same as e except that the values selected by s have each of their string values y truncated to length n.
+
+These functions should not be defined recursively; define them in terms of update.
+
+```fsharp
+let toZero (x: float) (s: Selector) (e: Ecma) : Ecma =
+    let su s = s
+    let nu n = if abs n <= x then 0.0 else n
+    update su nu s e
+
+let truncate (n: int) (s: Selector) (e: Ecma) : Ecma =
+    let su (s: string) : string =
+        if String.length s > n then s.Substring(0, n)
+        else s
+    let nu n = n
+    update su nu s e
+```
+
+----
+
+#### Task 7
+
+> 2 Test Cases failed
+> mapEcma simple
+> mapEcma spec
+
+// 7. Using the function update, define the function
+// 
+//   mapEcma : (string -> string) -> (float -> float) -> Ecma -> Ecma
+//
+// such that
+//
+//   mapEcma f g e
+//
+// evaluates to an Ecma obtained by updating every value in the
+// given Ecma value according to f and g.
+//
+// This function should not be defined recursively; define it in
+// terms of update.
+
+Using the function update, define the function
+
+`mapEcma : (string -> string) -> (float -> float) -> Ecma -> Ecma`
+
+such that
+
+`mapEcma f g e`
+
+evaluates to an Ecma obtained by updating every value in the given Ecma value according to f and g.
+
+This function should not be defined recursively; define it in terms of update.
+
+```fsharp
+let mapEcma (f: string -> string) (g: float -> float) (e: Ecma) : Ecma =
+    let su (s: string) : string = f s
+    let nu (n: float) : float = g n
+    update su nu (Match True) e
+```
+
+----
+
+### Coursework 6 Tail Recursion
+
+#### Task 1
+
+Write a function
+
+`notAnyInList : (int -> float -> bool) -> (int * float) list ->  bool`
+
+that returns true if the predicate passed as the first argument does not hold for any pair in the list passed as the second argument to the function.
+
+Make sure your implementation uses explicit tail recursion.
+
+e.g.,
+
+```fsharp
+notAnyInList (fun _ _ -> true) [(1,2.0);(3,4.0)]
+```
+
+should return false.
+
+```fsharp
+let notAnyInList predicate lst =
+  let rec checkPairs pairs =
+    match pairs with
+    | [] -> true
+    | (x, y)::rest -> if predicate x y then false else checkPairs rest
+  in
+  checkPairs lst
+```
+
+----
+
+#### Task 2
+
+Write a function
+
+`addHeadAsLastElementIf : 'a -> ('a -> bool) -> 'a list list -> 'a list list`
+
+that takes a list of lists of 'a-s, takes the head if present of each list of 'a-s in the list of lists and adds it as the last element to the current list if the predicate function passed as the second argument evaluates to true. 
+
+If the current list is empty, the previous element added as the last element of the list should be added to the empty list. 
+
+If the first list in the list of lists is empty , the default value passed as the first argument to the function should be added as the element of the list, if it satisfies the predicate function.
+
+e.g.,
+
+```fsharp
+addHeadAsLastElementIf 0 (fun _ -> true) [[1;2;3];[]]
+```
+
+should produce
+
+`[[1;2;3;1];[1]]`
+
+```fsharp
+addHeadAsLastElementIf 0 (fun _ -> true) [[];[1;2;3]]
+```
+
+should produce
+
+`[[0];[1;2;3;1]]`
+
+```fsharp
+let addHeadAsLastElementIf defaultVal predicate listOfLists =
+    let rec processLists curEle acc listOfLists =
+        match listOfLists with
+        | [] -> List.rev acc
+        | head::tail ->
+            let newElement, newList =
+                match head with
+                | hd::tail when predicate hd -> 
+                    hd, head @ [hd]
+                | [] when predicate curEle -> 
+                    curEle, [curEle]
+                | _ -> 
+                    curEle, head
+
+            processLists newElement (newList::acc) tail
+
+    processLists defaultVal [] listOfLists
+```
+
+----
+
+#### Task 3
+
+Write a function
+  addHeadAsLastElementIfFold : 'a -> ('a -> bool) -> 'a list list -> 'a list list
+  that behaves similarly to the function defined in Task 2.
+  Make sure your implementation uses List.fold or List.foldBack or its multiple
+  argument conterparts appropriately.
+
+
+Write a function
+
+`addHeadAsLastElementIfFold : 'a -> ('a -> bool) -> 'a list list -> 'a list list`
+
+that behaves similarly to the function defined in Task 2.
+
+Make sure your implementation uses `List.fold` or `List.foldBack` or its multiple argument conterparts appropriately.
+
+```fsharp
+let addHeadAsLastElementIfFold defaultVal pred listLists =
+    let helper, result = 
+      listLists |> List.fold 
+        (fun (acc, prevElem) curList ->
+            match curList with
+            | [] when pred prevElem -> ([prevElem]::acc, prevElem)
+            | hd::tail when pred hd -> ((hd::tail @ [hd])::acc, hd)
+            | _ -> (curList::acc, prevElem)
+        ) ([], defaultVal)
+    List.rev helper
+```
+
+----
+
+#### Task 4
+
+Below you find the definition of a type Tree of leaf-labeled trees. Write a function
+
+`maxAndMax2InTree : int Tree -> int * int`
+
+that returns the maximum and and the second largest elements of the tree.
+
+Use continuation-passing style in your implementation. Flattening the tree to a list and processing the list is not considered a correct solution.
+
+If the input is a tree with a single element, then the second element in the returned pair should be the minimum value of int.
+
+If there are 2 instances of the same maximum value in the tree, then the two values should be returned as pair.
+
+```fsharp
+type 'a Tree =
+  | El of 'a
+  | Br of 'a Tree * 'a Tree
+```
+
+```fsharp
+let maxAndMax2InTree (tree: int Tree):(int*int) =
+    let rec max2Helper (t: int Tree) cont =
+        match t with
+        | El(value) -> cont(value, System.Int32.MinValue)
+        | Br(left, right) -> 
+            max2Helper left (fun (maxL, secMaxL) -> 
+                max2Helper right (fun (maxR, secMaxR) ->
+                    let sorted = List.sortDescending [maxL; secMaxL; maxR; secMaxR]
+                    cont(sorted.[0], sorted.[1])
+                )
+            )
+    match tree with
+    | El(value) -> (value, System.Int32.MinValue)
+    | _ -> max2Helper tree (fun (max1, max2) -> (max1, max2))
+```
+
+----
+
+
 
