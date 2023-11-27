@@ -428,14 +428,14 @@ The type Selector is just a discriminated union. The intended interpretation of 
     In other words, start from the root value with the selector s. For the values that it selects, continue with selector s' from their child values and collect the results.
 
 - **OneOrMore s**:
-    
+  
     select the values selected by the selector s and, in addition, from the child values of the values in this set select the values selected by OneOrMore s.
 
     Thus, you can think of the values selected by `OneOrMore s` as the union of the following sets:
 
     - values selected by s
     - values selected by Sequence (s, OneOrMore s)
-  
+
 ----
 
 #### Task 1
@@ -458,7 +458,7 @@ Define the values s1, s2 and s3 of type Selector so that:
     - v is a child of a value t
     - t does not have a string value "xyz"
     - t is the root value
-  
+
 We consider the root value to be at depth 1.
 
 ```fsharp
@@ -592,23 +592,6 @@ let rec select s e =
 > update spec II
 > update spec
 
-// 4. Define the function
-//
-// update :  (string -> string)
-//        -> (float  -> float)
-//        -> Selector
-//        -> Ecma
-//        -> Ecma
-//
-// such that
-//
-//    update su nu s e
-//
-// evaluates to an Ecma that is otherwise the same as e except that,
-// for the values selected by s, the string values and numeric values
-// of that value have been updated according to the functions su and nu.
-let rec update su nu s e =
-
 Define the fuction
 
 ```fsharp
@@ -678,31 +661,6 @@ let rec delete selector e = None
 > truncate spec
 > toZero spec
 
-// 6. Using the function update, define the functions
-//
-//   toZero : float -> Selector -> Ecma -> Ecma
-//
-// and
-//
-//   truncate : int -> Selector -> Ecma -> Ecma
-//
-// so that
-//
-//   toZero x s e
-//
-// evaluates to an Ecma that is otherwise the same as e except that the
-// values selected by s have each of their numeric values y replaced by 0
-// if y is in the range [-x, x].
-//
-//   truncate n s e
-//
-// evaluates to an Ecma that is otherwise the same as e except that the
-// values selected by s have each of their string values y truncated to
-// length n.
-//
-// These functions should not be defined recursively; define them in
-// terms of update.
-
 Using the function update, define the functions
 
 `totoZero : float -> Selector -> Ecma -> Ecma`
@@ -744,20 +702,6 @@ let truncate (n: int) (s: Selector) (e: Ecma) : Ecma =
 > 2 Test Cases failed
 > mapEcma simple
 > mapEcma spec
-
-// 7. Using the function update, define the function
-// 
-//   mapEcma : (string -> string) -> (float -> float) -> Ecma -> Ecma
-//
-// such that
-//
-//   mapEcma f g e
-//
-// evaluates to an Ecma obtained by updating every value in the
-// given Ecma value according to f and g.
-//
-// This function should not be defined recursively; define it in
-// terms of update.
 
 Using the function update, define the function
 
