@@ -85,6 +85,7 @@ let addNameValue (n, v) e =
     | Object obj -> Object (obj@[(n, v)])
     | _ -> e  
 ```
+
 <br>
 
 Define the function `addValue : Ecma -> Ecma -> Ecma` so that `addValue v e` evaluates to an ECMA representation `e'` that is:
@@ -307,6 +308,7 @@ type Ecma =
     | Array of Ecma list
     | Null
 ```
+
 Define the function `mkObject : unit -> Ecma` that creates a representation for an empty object structure.
 
 ```fsharp
@@ -356,6 +358,7 @@ let addNameValue (n, v) e =
 ```
 
 Define the function `addValue : Ecma -> Ecma -> Ecma` so that `addValue v e` evaluates to an ECMA representation `e'` that is:
+
 - equal to e if e is not an array representation
 - a representation for the array e with the value v added as the last element, otherwise.
 
@@ -397,13 +400,13 @@ The type BExpr is just a discriminated union. The intended interpretation of val
   - **objects** with a numeric value in closed range xmin,xmax,
   - **arrays** with a numeric value in closed range xmin,xmax.
 - **HasBoolValue b**: evaluates to true on precisely those Ecma that are either:
-    - **Bool Ecma** with value b,
-    - **objects** that contain a Boolean value b,
-    - **arrays** that contain a Boolean value b.
+  - **Bool Ecma** with value b,
+  - **objects** that contain a Boolean value b,
+  - **arrays** that contain a Boolean value b.
 - **HasNull**: evaluates to true on precisely those Ecma that are either:
-    - **Null Ecma**,
-    - **objects** that contain a Null value,
-    - **arrays** that contain a Null value.
+  - **Null Ecma**,
+  - **objects** that contain a Null value,
+  - **arrays** that contain a Null value.
 
 Here is a type of `selector` expressions.
 
@@ -420,21 +423,21 @@ The type Selector is just a discriminated union. The intended interpretation of 
   the singleton set consisting of the root value if the expression b evaluates to true and the empty set otherwise.
 
 - **Sequence (s, s')**:
-
+  
     the set consisting of those values in the Ecma tree that are selected by the selector s' starting from any child value of a value that is selected by the selector s (starting from the root value).
-
+  
     In other words, first determine the set of values selected by s (starting from the root value). For every child c of a value in this set, determine the set of values selected by s' (starting from c) and take the union of such sets as the result.
-
+  
     In other words, start from the root value with the selector s. For the values that it selects, continue with selector s' from their child values and collect the results.
 
 - **OneOrMore s**:
   
     select the values selected by the selector s and, in addition, from the child values of the values in this set select the values selected by OneOrMore s.
-
+  
     Thus, you can think of the values selected by `OneOrMore s` as the union of the following sets:
-
-    - values selected by s
-    - values selected by Sequence (s, OneOrMore s)
+  
+  - values selected by s
+  - values selected by Sequence (s, OneOrMore s)
 
 ----
 
@@ -455,9 +458,9 @@ Define the values s1, s2 and s3 of type Selector so that:
 - s1 selects all object values with key "abc" that are at depth 3
 - s2 selects all values v such that v is a child of some value and all of the ancestors of v have the string value "xyz"
 - s3 selects all values v such that:
-    - v is a child of a value t
-    - t does not have a string value "xyz"
-    - t is the root value
+  - v is a child of a value t
+  - t does not have a string value "xyz"
+  - t is the root value
 
 We consider the root value to be at depth 1.
 
@@ -554,6 +557,7 @@ The path to the root value is the empty list.
 If you follow a child value of an object, then you add the key of that value to the path. If you follow a child of an array, then you add the index of that value in the array to the path (the oldest value has index 0).
 
 The order of values in the result list must respect the order of values in the given Ecma. More precisely, in the result list:
+
 - a value must appear before any of its children
 - a value must not appear before its older siblings and their descendants
 
@@ -601,6 +605,7 @@ update : (string -> string)
        -> Ecma
        -> Ecma
 ```
+
 such that
 
 ```
@@ -638,7 +643,6 @@ update su nu s e
 ----
 
 #### Task 5
-
 
 > 3 Test Cases failed
 > delete simple sequence II
@@ -816,7 +820,6 @@ Write a function
   Make sure your implementation uses List.fold or List.foldBack or its multiple
   argument conterparts appropriately.
 
-
 Write a function
 
 `addHeadAsLastElementIfFold : 'a -> ('a -> bool) -> 'a list list -> 'a list list`
@@ -878,6 +881,3 @@ let maxAndMax2InTree (tree: int Tree):(int*int) =
 ```
 
 ----
-
-
-
