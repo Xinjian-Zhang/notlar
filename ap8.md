@@ -205,6 +205,109 @@ type 'a Tree =
 Task 4 starts here:
 
 ```fsharp
+let maxAndMax2InTree tree =
+    let rec max2Helper tree (max1, max2) cont =
+        match tree with
+        | El value ->
+            let newMax1, newMax2 = 
+                if value > max1 then value, max1
+                elif value > max2 then max1, value
+                else max1, max2
+            cont (newMax1, newMax2)
+        | Br(left, right) ->
+            max2Helper right (max1, max2) (fun rightResult ->
+                max2Helper left rightResult cont)
 
+    runCPS (max2Helper tree (System.Int32.MinValue, System.Int32.MinValue))
 
-对于Task 4的代码，请你检查一下是否满足题目要求。如果是对的，由于代码写的过于冗余和复杂，请你尽可能地优化代码结构，尽量改变代码的结构，以防止被判定为抄袭。命名最好延续Task1,2,3的风格，以及遵循题目的要求。如果代码不对，给我正确答案。
+```
+----
+
+### Task 5
+
+A function from a type `'env` to a type `'a` can be seen as a computation that computes a value of type `'a` based on an environment of type `'env`. We call such a computation a reader computation, since compared to ordinary computations, it can read the given environment. Below you find the following:
+
+- the definition of a builder that lets you express reader computations using computation expressions
+- the definition of a reader computation ask : `'env -> 'env` that returns the environment
+- the definition of a function runReader : `('env -> 'a) -> 'env -> 'a` that runs a reader computation on a given environment
+- the definition of a type Expr of arithmetic expressions
+
+Implement a function eval : `Expr -> Map<string, int> -> int` that evaluates an expression using an environment which maps identifiers to values.
+
+NB! Use computation expressions for reader computations in your implementation.
+
+Note that partially applying eval to just an expression will yield a function of type `map <string, int> -> int`, which can be considered a reader computation. This observation is the key to using computation expressions.
+
+> The expressions are a simplified subset based on Section 18.2.1 of the F# 4.1 specification: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf
+
+```fsharp
+type ReaderBuilder () =
+  member this.Bind   (reader, f) = fun env -> f (reader env) env
+  member this.Return x           = fun _   -> x
+
+let reader = new ReaderBuilder ()
+
+let ask = id
+
+let runReader = (<|)
+
+type Expr =
+  | Const  of int          // constant
+  | Ident  of string       // identifier
+  | Neg    of Expr         // unary negation, e.g. -1
+  | Sum    of Expr * Expr  // sum 
+  | Diff   of Expr * Expr  // difference
+  | Prod   of Expr * Expr  // product
+  | Div    of Expr * Expr  // division
+  | DivRem of Expr * Expr  // division remainder as in 1 % 2 = 1
+  | Let    of string * Expr * Expr // let expression, the string is the identifier.
+```
+
+```fsharp
+let rec eval (expr: Expr) : (Map<string, int> -> int) =
+    reader {
+        match expr with
+        | Sum(a, b) | Diff(a, b) | Prod(a, b) | Div(a, b) | DivRem(a, b) ->
+            let! valA = eval a
+            let! valB = eval b
+            return
+                match expr with
+                | Sum(_, _)   -> valA + valB
+                | Diff(_, _)  -> valA - valB
+                | Prod(_, _)  -> valA * valB
+                | Div(_, _)   -> valA / valB
+                | DivRem(_, _) -> valA % valB
+                | _ -> failwith "Unsupported operation"
+        | Neg(a) ->
+            let! valA = eval a
+            return -valA
+        | Const(value) -> 
+            return value
+        | Ident(name) ->
+            let! env = ask
+            return env.[name]
+        | Let(ident, valueExpr, body) ->
+            let! value = eval valueExpr
+            let! env = ask
+            return runReader (eval body) (env.Add(ident, value))
+    }
+```
+
+// //Example:
+// //keeping in mind the expression: let a = 5 in (a + 1) * 6
+// let expr = Let ("a",Const 5, Prod(Sum(Ident("a"),Const 1),Const 6))
+// eval expr Map.empty<string,int>
+// should return 36     
+
+Example:
+
+Keeping in mind the expression: `let a = 5 in (a + 1) * 6`
+
+`let expr = Let ("a",Const 5, Prod(Sum(Ident("a"),Const 1),Const 6))`
+
+`eval expr Map.empty<string,int>` should return 36
+
+```fsharp
+let expr = Let ("a",Const 5, Prod(Sum(Ident("a"),Const 1),Const 6))
+printfn "%A" (eval expr Map.empty<string,int>) // Result: 36
+```
