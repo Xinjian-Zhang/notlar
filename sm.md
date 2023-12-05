@@ -3,7 +3,7 @@
 ----
 
 ### **Task #1 (1 point):** 
-
+    
 Please provide an updated description of the system you are modelling. Make sure that it matches the designed model as closely as possible and that all details (previously - classes, their attributes, relationships between classes, actors, use-cases, sequence of operations etc., now - states, operations etc.) are specified in both the model and the description.
 
 Expected length – ½ - 1 A4 page.
